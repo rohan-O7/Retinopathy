@@ -15,51 +15,51 @@ export const Header: React.FC<HeaderProps> = ({
   onBackToDashboard 
 }) => {
   return (
-    <header className="bg-white shadow-lg border-b border-blue-100">
+    <header className="bg-black shadow-md border-b border-white">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between py-4">
           <div className="flex items-center space-x-3">
-            <div className="bg-gradient-to-r from-blue-600 to-blue-700 p-2 rounded-xl">
-              <Eye className="h-8 w-8 text-white" />
+            <div className="bg-white p-2 rounded-xl">
+              <Eye className="h-8 w-8 text-black" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">Retinal AI</h1>
-              <p className="text-sm text-gray-600">Advanced Retinal Analysis Platform</p>
+              <h1 className="text-2xl font-bold text-white">SightGaurdian AI</h1>
+              <p className="text-sm text-white">Advanced Retinal Analysis Platform</p>
             </div>
           </div>
-          
+
           <nav className="flex items-center space-x-1">
             <button
               onClick={onBackToDashboard}
-              className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors ${
+              className={`flex items-center space-x-2 px-4 py-2 rounded-lg border transition-colors ${
                 currentView === 'dashboard'
-                  ? 'bg-blue-100 text-blue-700'
-                  : 'text-gray-600 hover:bg-gray-100'
+                  ? 'bg-white text-black border-white'
+                  : 'bg-black text-white border-white hover:bg-white hover:text-black'
               }`}
             >
               <Home className="h-4 w-4" />
               <span>Dashboard</span>
             </button>
-            
+
             <button
               onClick={onNewAnalysis}
-              className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors ${
+              className={`flex items-center space-x-2 px-4 py-2 rounded-lg border transition-colors ${
                 currentView === 'upload'
-                  ? 'bg-blue-100 text-blue-700'
-                  : 'text-gray-600 hover:bg-gray-100'
+                  ? 'bg-white text-black border-white'
+                  : 'bg-black text-white border-white hover:bg-white hover:text-black'
               }`}
             >
               <Upload className="h-4 w-4" />
               <span>New Analysis</span>
             </button>
-            
+
             <button
               onClick={() => onNavigate('results')}
               disabled={currentView !== 'results'}
-              className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors ${
+              className={`flex items-center space-x-2 px-4 py-2 rounded-lg border transition-colors ${
                 currentView === 'results'
-                  ? 'bg-blue-100 text-blue-700'
-                  : 'text-gray-400 cursor-not-allowed'
+                  ? 'bg-white text-black border-white'
+                  : 'bg-black text-white border-white opacity-50 cursor-not-allowed'
               }`}
             >
               <BarChart3 className="h-4 w-4" />

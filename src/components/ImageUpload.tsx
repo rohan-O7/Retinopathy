@@ -1,30 +1,38 @@
 import React, { useState, useCallback } from 'react';
-import { Upload, Image, AlertCircle, CheckCircle } from 'lucide-react';
+import { Upload, Image, CheckCircle } from 'lucide-react';
+import { usePatient } from '../context/usePatient.ts';
 
 interface ImageUploadProps {
   onImageUpload: (file: File) => void;
+}
+
+interface PatientInfo {
+  name: string;
+  age: string;
+  gender: string;
+  image: File;
 }
 
 export const ImageUpload: React.FC<ImageUploadProps> = ({ onImageUpload }) => {
   const [dragActive, setDragActive] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [name, setName] = useState('');
+  const [age, setAge] = useState('');
+  const [gender, setGender] = useState('');
+  const { addPatient } = usePatient();
 
   const handleDrag = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    if (e.type === "dragenter" || e.type === "dragover") {
-      setDragActive(true);
-    } else if (e.type === "dragleave") {
-      setDragActive(false);
-    }
+    setDragActive(e.type === "dragenter" || e.type === "dragover");
   }, []);
 
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
     setDragActive(false);
-    
+
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
       handleFile(e.dataTransfer.files[0]);
     }
@@ -45,29 +53,30 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({ onImageUpload }) => {
   };
 
   const handleAnalyze = () => {
-    if (selectedFile) {
+    if (selectedFile && name && age && gender) {
       onImageUpload(selectedFile);
+      addPatient({ name, age, gender, image: selectedFile });
+
+      setName('');
+      setAge('');
+      setGender('');
+      setSelectedFile(null);
+      setPreviewUrl(null);
+    } else {
+      alert("Please fill all fields and upload an image.");
     }
   };
 
   return (
-    <div className="max-w-4xl mx-auto">
-      <div className="text-center mb-8">
-        <h1 className="text-4xl font-bold text-gray-900 mb-4">
-          Upload Retinal Image
-        </h1>
-        <p className="text-lg text-gray-600">
-          Upload a high-quality retinal fundus image for AI-powered analysis
-        </p>
-      </div>
-
-      <div className="bg-white rounded-3xl shadow-xl p-8">
+    <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-10 text-white">
+      {/* Left: Image Upload Box */}
+      <div className="bg-zinc-900 rounded-3xl shadow-2xl p-8">
         {!selectedFile ? (
           <div
             className={`border-3 border-dashed rounded-2xl p-12 text-center transition-colors ${
               dragActive
-                ? 'border-blue-500 bg-blue-50'
-                : 'border-gray-300 hover:border-blue-400 hover:bg-blue-50'
+                ? 'border-blue-500 bg-zinc-800'
+                : 'border-zinc-700 hover:border-blue-400 hover:bg-zinc-800'
             }`}
             onDragEnter={handleDrag}
             onDragLeave={handleDrag}
@@ -75,18 +84,16 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({ onImageUpload }) => {
             onDrop={handleDrop}
           >
             <div className="flex flex-col items-center space-y-6">
-              <div className="bg-gradient-to-r from-blue-100 to-blue-200 p-6 rounded-full">
-                <Upload className="h-12 w-12 text-blue-600" />
+              <div className="bg-blue-900 p-6 rounded-full">
+                <Upload className="h-12 w-12 text-blue-400" />
               </div>
-              
               <div>
-                <h3 className="text-2xl font-semibold text-gray-900 mb-2">
+                <h3 className="text-2xl font-semibold text-white mb-2">
                   Drop your retinal image here
                 </h3>
-                <p className="text-gray-600 mb-6">
+                <p className="text-gray-400 mb-6">
                   or click to browse your files
                 </p>
-                
                 <label htmlFor="file-upload" className="cursor-pointer">
                   <span className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-3 rounded-xl font-semibold hover:from-blue-700 hover:to-blue-800 transition-all duration-200 shadow-lg hover:shadow-xl">
                     Choose File
@@ -100,96 +107,89 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({ onImageUpload }) => {
                   />
                 </label>
               </div>
-              
-              <div className="text-sm text-gray-500 space-y-1">
+              <div className="text-sm text-gray-400 space-y-1">
                 <p>Supported formats: JPG, PNG, JPEG</p>
                 <p>Maximum file size: 10MB</p>
-                <p>Recommended: High-resolution fundus photography</p>
               </div>
             </div>
           </div>
         ) : (
           <div className="space-y-6">
-            <div className="bg-green-50 border border-green-200 rounded-xl p-4 flex items-center space-x-3">
-              <CheckCircle className="h-6 w-6 text-green-600" />
+            <div className="bg-green-900 border border-green-700 rounded-xl p-4 flex items-center space-x-3">
+              <CheckCircle className="h-6 w-6 text-green-400" />
               <div>
-                <p className="text-green-800 font-semibold">Image uploaded successfully</p>
-                <p className="text-green-600 text-sm">{selectedFile.name}</p>
+                <p className="text-green-300 font-semibold">Image uploaded successfully</p>
+                <p className="text-green-400 text-sm">{selectedFile.name}</p>
               </div>
             </div>
 
-            <div className="grid md:grid-cols-2 gap-8">
-              <div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-4">Preview</h3>
-                <div className="relative">
-                  <img
-                    src={previewUrl || ''}
-                    alt="Retinal image preview"
-                    className="w-full h-64 object-cover rounded-xl shadow-lg"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent rounded-xl"></div>
-                </div>
-              </div>
-
-              <div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-4">Image Details</h3>
-                <div className="space-y-3">
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Filename:</span>
-                    <span className="text-gray-900 font-medium">{selectedFile.name}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Size:</span>
-                    <span className="text-gray-900 font-medium">
-                      {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Type:</span>
-                    <span className="text-gray-900 font-medium">{selectedFile.type}</span>
-                  </div>
-                </div>
-
-                <div className="mt-8 space-y-3">
-                  <button
-                    onClick={handleAnalyze}
-                    className="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white py-4 rounded-xl font-semibold hover:from-blue-700 hover:to-blue-800 transition-all duration-200 shadow-lg hover:shadow-xl flex items-center justify-center space-x-3"
-                  >
-                    <Image className="h-5 w-5" />
-                    <span>Start AI Analysis</span>
-                  </button>
-                  
-                  <button
-                    onClick={() => {
-                      setSelectedFile(null);
-                      setPreviewUrl(null);
-                    }}
-                    className="w-full border border-gray-300 text-gray-700 py-3 rounded-xl font-medium hover:bg-gray-50 transition-colors"
-                  >
-                    Choose Different Image
-                  </button>
-                </div>
-              </div>
+            <div>
+              <img
+                src={previewUrl || ''}
+                alt="Retinal preview"
+                className="w-full h-64 object-cover rounded-xl shadow-lg"
+              />
             </div>
+
+            <button
+              onClick={() => {
+                setSelectedFile(null);
+                setPreviewUrl(null);
+              }}
+              className="w-full border border-zinc-600 text-white py-3 rounded-xl font-medium hover:bg-zinc-800 transition-colors"
+            >
+              Choose Different Image
+            </button>
           </div>
         )}
+      </div>
 
-        <div className="mt-8 bg-blue-50 border border-blue-200 rounded-xl p-6">
-          <div className="flex items-start space-x-3">
-            <AlertCircle className="h-6 w-6 text-blue-600 mt-0.5" />
-            <div>
-              <h4 className="text-lg font-semibold text-blue-900 mb-2">
-                Important Notes
-              </h4>
-              <ul className="text-blue-800 space-y-1 text-sm">
-                <li>• Ensure the retinal image is well-focused and properly illuminated</li>
-                <li>• Images should be captured using standard fundus photography protocols</li>
-                <li>• Poor quality images may result in inaccurate analysis</li>
-                <li>• All uploaded images are processed securely and confidentially</li>
-              </ul>
-            </div>
+      {/* Right: Form Box */}
+      <div className="bg-zinc-900 rounded-3xl shadow-2xl p-8 space-y-6">
+        <h2 className="text-2xl font-bold text-white mb-4">Patient Details</h2>
+        <div className="space-y-4">
+          <div>
+            <label className="block text-gray-300 font-medium">Name</label>
+            <input
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className="w-full mt-1 bg-zinc-800 border border-zinc-600 text-white rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="Enter patient's name"
+            />
+          </div>
+          <div>
+            <label className="block text-gray-300 font-medium">Age</label>
+            <input
+              type="number"
+              value={age}
+              onChange={(e) => setAge(e.target.value)}
+              className="w-full mt-1 bg-zinc-800 border border-zinc-600 text-white rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="Enter age"
+            />
+          </div>
+          <div>
+            <label className="block text-gray-300 font-medium">Gender</label>
+            <select
+              value={gender}
+              onChange={(e) => setGender(e.target.value)}
+              className="w-full mt-1 bg-zinc-800 border border-zinc-600 text-white rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="">Select Gender</option>
+              <option>Male</option>
+              <option>Female</option>
+              <option>Other</option>
+            </select>
           </div>
         </div>
+
+        <button
+          onClick={handleAnalyze}
+          className="w-full mt-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white py-4 rounded-xl font-semibold hover:from-blue-700 hover:to-blue-800 transition-all duration-200 shadow-lg hover:shadow-xl flex items-center justify-center space-x-3"
+        >
+          <Image className="h-5 w-5" />
+          <span>Start AI Analysis</span>
+        </button>
       </div>
     </div>
   );
